@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -32,22 +33,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-gray-100 min-h-screen flex flex-col`}
       >
-        <CartProvider>
-          <Navbar />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
-            {children}
-          </main>
-          <Footer />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: "#333",
-                color: "#fff",
-              },
-            }}
-          />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Navbar />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+              {children}
+            </main>
+            <Footer />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "#333",
+                  color: "#fff",
+                },
+              }}
+            />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,121 +1,207 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { User, Menu, X } from "lucide-react";
-import CartIcon from "./CartIcon";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import {
+  ShoppingCart,
+  User,
+  LogOut,
+  LogIn,
+  UserPlus,
+  Menu,
+  X,
+} from "lucide-react";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const { user, isAuthenticated, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
-    <nav className="bg-black bg-opacity-90 text-white shadow-md border-b border-blue-500/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link
-              href="/"
-              className="flex-shrink-0 font-bold text-xl text-white"
-            >
-              <span className="text-blue-500">Moto</span>Tech
+    <nav className="bg-gray-800 text-white shadow-md">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex justify-between items-center">
+          {/* Logo et liens principaux */}
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="text-xl font-bold">
+              Moto Tech
             </Link>
-            <div className="hidden md:block ml-10">
-              <div className="flex items-baseline space-x-4">
-                <Link
-                  href="/"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-gray-800 hover:text-blue-400 transition-colors"
-                >
-                  Accueil
-                </Link>
-                <Link
-                  href="/products"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-gray-800 hover:text-blue-400 transition-colors"
-                >
-                  Produits
-                </Link>
-                <Link
-                  href="/about"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-gray-800 hover:text-blue-400 transition-colors"
-                >
-                  À propos
-                </Link>
-                <Link
-                  href="/contact"
-                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-gray-800 hover:text-blue-400 transition-colors"
-                >
-                  Contact
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <div className="flex items-center ml-4 md:ml-6">
-              <CartIcon />
+
+            {/* Menu pour desktop */}
+            <div className="hidden md:flex space-x-6">
               <Link
-                href="/profile"
-                className="p-2 ml-2 rounded-full hover:bg-gray-800 text-white hover:text-blue-400 transition-colors"
+                href="/"
+                className={`hover:text-blue-300 transition ${
+                  pathname === "/" ? "text-blue-400" : ""
+                }`}
               >
-                <User className="h-6 w-6" />
+                Accueil
+              </Link>
+              <Link
+                href="/products"
+                className={`hover:text-blue-300 transition ${
+                  pathname.startsWith("/products") ? "text-blue-400" : ""
+                }`}
+              >
+                Produits
               </Link>
             </div>
           </div>
+
+          {/* Bouton menu pour mobile */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-800 hover:text-blue-400 transition-colors"
+              onClick={toggleMenu}
+              className="text-white focus:outline-none"
             >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Menu mobile */}
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {/* Actions utilisateur pour desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Link
+              href="/cart"
+              className={`hover:text-blue-300 transition flex items-center ${
+                pathname === "/cart" ? "text-blue-400" : ""
+              }`}
+            >
+              <ShoppingCart className="mr-1" size={20} />
+              Panier
+            </Link>
+
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/profile"
+                  className={`hover:text-blue-300 transition flex items-center ${
+                    pathname === "/profile" ? "text-blue-400" : ""
+                  }`}
+                >
+                  <User className="mr-1" size={20} />
+                  {user?.username}
+                </Link>
+                <button
+                  onClick={logout}
+                  className="hover:text-blue-300 transition flex items-center"
+                >
+                  <LogOut className="mr-1" size={20} />
+                  Déconnexion
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/login"
+                  className={`hover:text-blue-300 transition flex items-center ${
+                    pathname === "/login" ? "text-blue-400" : ""
+                  }`}
+                >
+                  <LogIn className="mr-1" size={20} />
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className={`hover:text-blue-300 transition flex items-center ${
+                    pathname === "/register" ? "text-blue-400" : ""
+                  }`}
+                >
+                  <UserPlus className="mr-1" size={20} />
+                  Inscription
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Menu mobile */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-3 space-y-2 py-3 border-t border-gray-700">
             <Link
               href="/"
-              className="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800 hover:text-blue-400 transition-colors"
+              className={`block py-2 hover:text-blue-300 transition ${
+                pathname === "/" ? "text-blue-400" : ""
+              }`}
+              onClick={toggleMenu}
             >
               Accueil
             </Link>
             <Link
               href="/products"
-              className="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800 hover:text-blue-400 transition-colors"
+              className={`block py-2 hover:text-blue-300 transition ${
+                pathname.startsWith("/products") ? "text-blue-400" : ""
+              }`}
+              onClick={toggleMenu}
             >
               Produits
             </Link>
             <Link
-              href="/about"
-              className="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800 hover:text-blue-400 transition-colors"
+              href="/cart"
+              className={`block py-2 hover:text-blue-300 transition flex items-center ${
+                pathname === "/cart" ? "text-blue-400" : ""
+              }`}
+              onClick={toggleMenu}
             >
-              À propos
+              <ShoppingCart className="mr-1" size={20} />
+              Panier
             </Link>
-            <Link
-              href="/contact"
-              className="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800 hover:text-blue-400 transition-colors"
-            >
-              Contact
-            </Link>
+
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/profile"
+                  className={`block py-2 hover:text-blue-300 transition flex items-center ${
+                    pathname === "/profile" ? "text-blue-400" : ""
+                  }`}
+                  onClick={toggleMenu}
+                >
+                  <User className="mr-1" size={20} />
+                  {user?.username}
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    toggleMenu();
+                  }}
+                  className="block py-2 w-full text-left hover:text-blue-300 transition flex items-center"
+                >
+                  <LogOut className="mr-1" size={20} />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={`block py-2 hover:text-blue-300 transition flex items-center ${
+                    pathname === "/login" ? "text-blue-400" : ""
+                  }`}
+                  onClick={toggleMenu}
+                >
+                  <LogIn className="mr-1" size={20} />
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className={`block py-2 hover:text-blue-300 transition flex items-center ${
+                    pathname === "/register" ? "text-blue-400" : ""
+                  }`}
+                  onClick={toggleMenu}
+                >
+                  <UserPlus className="mr-1" size={20} />
+                  Inscription
+                </Link>
+              </>
+            )}
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-700">
-            <div className="flex items-center px-5">
-              <CartIcon />
-              <Link
-                href="/profile"
-                className="p-2 ml-2 rounded-full hover:bg-gray-800 hover:text-blue-400 transition-colors"
-              >
-                <User className="h-6 w-6" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 }
