@@ -84,26 +84,22 @@ export default function CartPage() {
     setIsCheckingOut(true);
 
     try {
-      // Créer les commandes pour chaque produit du panier
-      const orderPromises = items.map(async (item) => {
-        const orderData = {
-          productId: item.productId,
-          quantity: item.quantity,
-          // Note: userId est géré côté serveur grâce au token
-        };
+      // Préparer les données de commande avec tous les produits du panier
+      const orderItems = items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
-        // Appel API pour créer la commande
-        return api.createOrder(orderData, token);
-      });
+      const orderData = {
+        items: orderItems,
+        totalAmount: totalPrice,
+      };
 
-      // Attendre que toutes les commandes soient créées
-      toast.promise(Promise.all(orderPromises), {
-        loading: "Traitement de votre commande...",
-        success: "Commande confirmée !",
-        error: "Erreur lors du traitement de la commande",
-      });
+      // Appel API pour créer une seule commande avec tous les produits
+      const result = await api.createOrder(orderData, token);
 
-      await Promise.all(orderPromises);
+      toast.success("Commande confirmée !");
 
       // Enregistrer que le checkout est terminé pour la page de succès
       sessionStorage.setItem("checkoutComplete", "true");
@@ -111,7 +107,7 @@ export default function CartPage() {
       clearCart();
       router.push("/checkout/success");
     } catch (error) {
-      console.error("Erreur lors de la création des commandes:", error);
+      console.error("Erreur lors de la création de la commande:", error);
       toast.error(
         "Une erreur est survenue lors de la validation de votre commande"
       );

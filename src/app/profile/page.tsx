@@ -23,10 +23,16 @@ interface OrderProduct {
   image?: string;
 }
 
-interface Order {
-  _id: string;
+interface OrderItem {
   productId: OrderProduct;
   quantity: number;
+  price: number;
+}
+
+interface Order {
+  _id: string;
+  items: OrderItem[];
+  totalAmount: number;
   status: string;
   createdAt?: string;
 }
@@ -391,10 +397,13 @@ export default function ProfilePage() {
                           ID
                         </th>
                         <th className="py-3 px-4 text-left text-gray-300 font-medium">
-                          Produit
+                          Date
                         </th>
                         <th className="py-3 px-4 text-left text-gray-300 font-medium">
-                          Date
+                          Produits
+                        </th>
+                        <th className="py-3 px-4 text-left text-gray-300 font-medium">
+                          Total
                         </th>
                         <th className="py-3 px-4 text-left text-gray-300 font-medium">
                           Statut
@@ -402,7 +411,7 @@ export default function ProfilePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.map((order: any) => (
+                      {orders.map((order: Order) => (
                         <tr
                           key={order._id}
                           className="border-b border-gray-700 hover:bg-gray-750"
@@ -411,11 +420,20 @@ export default function ProfilePage() {
                             {order._id.substring(0, 8)}
                           </td>
                           <td className="py-3 px-4 text-gray-300">
-                            {order.productId.name}
-                          </td>
-                          <td className="py-3 px-4 text-gray-300">
                             {order.createdAt
                               ? new Date(order.createdAt).toLocaleDateString()
+                              : "N/A"}
+                          </td>
+                          <td className="py-3 px-4 text-gray-300">
+                            {order.items && order.items.length > 0
+                              ? `${order.items.length} article${
+                                  order.items.length > 1 ? "s" : ""
+                                }`
+                              : "Données manquantes"}
+                          </td>
+                          <td className="py-3 px-4 text-gray-300">
+                            {order.totalAmount
+                              ? `${order.totalAmount.toFixed(2)} €`
                               : "N/A"}
                           </td>
                           <td className="py-3 px-4">
