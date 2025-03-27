@@ -56,9 +56,10 @@ export default function ProfilePage() {
 
   // Charger les informations utilisateur et les commandes
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!token || !isAuthenticated) return;
+    // Skip le chargement si l'utilisateur n'est pas connecté
+    if (!token || !isAuthenticated) return;
 
+    const fetchUserData = async () => {
       try {
         setIsLoading(true);
         setError(null);
@@ -71,15 +72,22 @@ export default function ProfilePage() {
         // Récupérer les commandes de l'utilisateur
         const userOrders = await api.getUserOrders(token);
         setOrders(userOrders);
+        console.log("Commandes récupérées:", userOrders);
       } catch (err: any) {
         setError("Erreur lors du chargement des données : " + err.message);
+        console.error("Erreur lors du chargement des données:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [token, isAuthenticated]);
+
+    // Nettoyage au démontage (si nécessaire)
+    return () => {
+      // Logique de nettoyage si nécessaire
+    };
+  }, [token, isAuthenticated]); // Dépendances limitées pour éviter les boucles infinies
 
   // Gérer la soumission du formulaire de mise à jour du profil
   const handleUpdateProfile = async (e: React.FormEvent) => {

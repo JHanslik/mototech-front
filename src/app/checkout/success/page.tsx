@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, Home, ShoppingBag } from "lucide-react";
+import { CheckCircle, Home, ShoppingBag, User } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -49,6 +49,14 @@ export default function CheckoutSuccessPage() {
           >
             <ShoppingBag className="h-4 w-4 mr-2" />
             Continuer les achats
+          </Link>
+
+          <Link
+            href="/profile"
+            className="flex items-center justify-center w-full px-6 py-3 border border-green-500 text-green-500 rounded-md hover:bg-green-500/10 transition-colors"
+          >
+            <User className="h-4 w-4 mr-2" />
+            Voir mon profil et mes commandes
           </Link>
         </div>
       </div>

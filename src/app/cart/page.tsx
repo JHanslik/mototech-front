@@ -1,6 +1,8 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import api from "@/services/api";
 import Link from "next/link";
 import { Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -9,6 +11,7 @@ import toast from "react-hot-toast";
 
 export default function CartPage() {
   const { items, removeFromCart, addToCart, clearCart, totalPrice } = useCart();
+  const { isAuthenticated, token, user } = useAuth();
   const router = useRouter();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -65,29 +68,55 @@ export default function CartPage() {
     [items, addToCart, removeFromCart]
   );
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (items.length === 0) {
       toast.error("Votre panier est vide");
       return;
     }
 
+    // Vérifier si l'utilisateur est connecté
+    if (!isAuthenticated || !token) {
+      toast.error("Veuillez vous connecter pour finaliser votre commande");
+      router.push("/login");
+      return;
+    }
+
     setIsCheckingOut(true);
-    // Simuler un traitement de paiement
-    toast
-      .promise(new Promise((resolve) => setTimeout(resolve, 2000)), {
+
+    try {
+      // Créer les commandes pour chaque produit du panier
+      const orderPromises = items.map(async (item) => {
+        const orderData = {
+          productId: item.productId,
+          quantity: item.quantity,
+          // Note: userId est géré côté serveur grâce au token
+        };
+
+        // Appel API pour créer la commande
+        return api.createOrder(orderData, token);
+      });
+
+      // Attendre que toutes les commandes soient créées
+      toast.promise(Promise.all(orderPromises), {
         loading: "Traitement de votre commande...",
         success: "Commande confirmée !",
         error: "Erreur lors du traitement de la commande",
-      })
-      .then(() => {
-        // Enregistrer que le checkout est terminé pour la page de succès
-        sessionStorage.setItem("checkoutComplete", "true");
-        clearCart();
-        router.push("/checkout/success");
-      })
-      .catch(() => {
-        setIsCheckingOut(false);
       });
+
+      await Promise.all(orderPromises);
+
+      // Enregistrer que le checkout est terminé pour la page de succès
+      sessionStorage.setItem("checkoutComplete", "true");
+      // Vider le panier après le succès
+      clearCart();
+      router.push("/checkout/success");
+    } catch (error) {
+      console.error("Erreur lors de la création des commandes:", error);
+      toast.error(
+        "Une erreur est survenue lors de la validation de votre commande"
+      );
+      setIsCheckingOut(false);
+    }
   };
 
   if (items.length === 0) {
