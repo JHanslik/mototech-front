@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
@@ -13,6 +13,7 @@ import {
   Mail,
   UserCircle,
   LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 // Types
@@ -44,6 +45,73 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  // État pour suivre les commandes déployées
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>(
+    {}
+  );
+  // Référence pour les éléments de détails de commande
+  const detailsRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Effet pour animer les détails de commande lorsqu'ils sont affichés
+  useEffect(() => {
+    // Pour chaque commande déployée, appliquer l'animation
+    Object.keys(expandedOrders).forEach((orderId) => {
+      const detailsEl = detailsRefs.current[orderId];
+      if (!detailsEl) return;
+
+      if (expandedOrders[orderId]) {
+        // 1. D'abord on cache visuellement l'élément tout en le rendant accessible au DOM
+        detailsEl.style.display = "block";
+        detailsEl.style.overflow = "hidden";
+
+        // 2. Mesurer la hauteur réelle quand l'élément est à sa pleine taille
+        const contentHeight = detailsEl.scrollHeight;
+
+        // 3. Appliquer l'animation immédiatement en un seul rendu
+        // Nous utilisons requestAnimationFrame pour synchroniser avec le cycle de rendu
+        requestAnimationFrame(() => {
+          // Initialiser à l'état fermé
+          detailsEl.style.maxHeight = "0px";
+          detailsEl.style.paddingTop = "0px";
+          detailsEl.style.paddingBottom = "0px";
+          detailsEl.style.opacity = "0";
+          detailsEl.style.transform = "translateY(-10px)";
+
+          // Forcer le rendu
+          detailsEl.offsetHeight;
+
+          // Puis immédiatement passer à l'état ouvert
+          detailsEl.style.maxHeight = `${contentHeight + 32}px`; // Ajouter marge pour le padding
+          detailsEl.style.paddingTop = "16px";
+          detailsEl.style.paddingBottom = "16px";
+          detailsEl.style.opacity = "1";
+          detailsEl.style.transform = "translateY(0)";
+        });
+      } else {
+        // Animation de fermeture en une seule étape
+        detailsEl.style.maxHeight = "0px";
+        detailsEl.style.paddingTop = "0px";
+        detailsEl.style.paddingBottom = "0px";
+        detailsEl.style.opacity = "0";
+        detailsEl.style.transform = "translateY(-10px)";
+
+        // Cacher complètement après l'animation
+        setTimeout(() => {
+          if (!expandedOrders[orderId]) {
+            detailsEl.style.display = "none";
+          }
+        }, 300); // Attendre que la transition soit terminée
+      }
+    });
+  }, [expandedOrders]);
+
+  // Fonction pour basculer l'affichage des détails d'une commande
+  const toggleOrderDetails = (orderId: string) => {
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
 
   // État pour le formulaire de mise à jour du profil
   const [username, setUsername] = useState("");
@@ -412,50 +480,116 @@ export default function ProfilePage() {
                     </thead>
                     <tbody>
                       {orders.map((order: Order) => (
-                        <tr
-                          key={order._id}
-                          className="border-b border-gray-700 hover:bg-gray-750"
-                        >
-                          <td className="py-3 px-4 text-gray-300">
-                            {order._id.substring(0, 8)}
-                          </td>
-                          <td className="py-3 px-4 text-gray-300">
-                            {order.createdAt
-                              ? new Date(order.createdAt).toLocaleDateString()
-                              : "N/A"}
-                          </td>
-                          <td className="py-3 px-4 text-gray-300">
-                            {order.items && order.items.length > 0
-                              ? `${order.items.length} article${
-                                  order.items.length > 1 ? "s" : ""
-                                }`
-                              : "Données manquantes"}
-                          </td>
-                          <td className="py-3 px-4 text-gray-300">
-                            {order.totalAmount
-                              ? `${order.totalAmount.toFixed(2)} €`
-                              : "N/A"}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                order.status === "completed"
-                                  ? "bg-green-900 text-green-300"
-                                  : order.status === "pending"
-                                  ? "bg-yellow-900 text-yellow-300"
-                                  : "bg-gray-700 text-gray-300"
-                              }`}
-                            >
-                              {order.status === "pending"
-                                ? "En attente"
-                                : order.status === "completed"
-                                ? "Terminée"
-                                : order.status === "cancelled"
-                                ? "Annulée"
-                                : order.status}
-                            </span>
-                          </td>
-                        </tr>
+                        <>
+                          <tr
+                            key={order._id}
+                            onClick={() => toggleOrderDetails(order._id)}
+                            className="border-b border-gray-700 hover:bg-gray-750 cursor-pointer"
+                          >
+                            <td className="py-3 px-4 text-gray-300">
+                              {order._id.substring(0, 8)}
+                            </td>
+                            <td className="py-3 px-4 text-gray-300">
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleDateString()
+                                : "N/A"}
+                            </td>
+                            <td className="py-3 px-4 text-gray-300">
+                              {order.items && order.items.length > 0
+                                ? `${order.items.length} article${
+                                    order.items.length > 1 ? "s" : ""
+                                  }`
+                                : "Données manquantes"}
+                            </td>
+                            <td className="py-3 px-4 text-gray-300">
+                              {order.totalAmount
+                                ? `${order.totalAmount.toFixed(2)} €`
+                                : "N/A"}
+                            </td>
+                            <td className="py-3 px-4 flex items-center">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium mr-2 ${
+                                  order.status === "completed"
+                                    ? "bg-green-900 text-green-300"
+                                    : order.status === "pending"
+                                    ? "bg-yellow-900 text-yellow-300"
+                                    : "bg-gray-700 text-gray-300"
+                                }`}
+                              >
+                                {order.status === "pending"
+                                  ? "En attente"
+                                  : order.status === "completed"
+                                  ? "Terminée"
+                                  : order.status === "cancelled"
+                                  ? "Annulée"
+                                  : order.status}
+                              </span>
+                              <ChevronDown
+                                className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${
+                                  expandedOrders[order._id] ? "rotate-180" : ""
+                                }`}
+                              />
+                            </td>
+                          </tr>
+                          {expandedOrders[order._id] && (
+                            <tr className="bg-gray-800">
+                              <td colSpan={5} className="px-4 py-2">
+                                <div
+                                  ref={(el) => {
+                                    detailsRefs.current[order._id] = el;
+                                  }}
+                                  className="bg-gray-700 rounded-md overflow-hidden transition-all duration-300 ease-in-out"
+                                  style={{
+                                    opacity: 0,
+                                    maxHeight: 0,
+                                    transform: "translateY(-10px)",
+                                    display: "none",
+                                    padding: 0,
+                                  }}
+                                >
+                                  <div className="px-4">
+                                    <h4 className="text-white font-medium mb-3">
+                                      Détails de la commande
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {order.items &&
+                                        order.items.map((item, index) => (
+                                          <div
+                                            key={`${order._id}-item-${index}`}
+                                            className="flex justify-between items-center border-b border-gray-700 pb-2"
+                                          >
+                                            <div>
+                                              <p className="text-white">
+                                                {item.productId?.name ||
+                                                  "Produit inconnu"}
+                                              </p>
+                                              <p className="text-sm text-gray-400">
+                                                Quantité: {item.quantity}
+                                              </p>
+                                            </div>
+                                            <div className="text-white font-medium">
+                                              {(
+                                                item.price * item.quantity
+                                              ).toFixed(2)}{" "}
+                                              €
+                                            </div>
+                                          </div>
+                                        ))}
+                                      <div className="flex justify-between items-center pt-2">
+                                        <p className="text-white font-bold">
+                                          Total
+                                        </p>
+                                        <p className="text-white font-bold">
+                                          {order.totalAmount.toFixed(2)} €
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       ))}
                     </tbody>
                   </table>
