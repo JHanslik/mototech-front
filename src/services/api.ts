@@ -29,16 +29,65 @@ export const api = {
   /**
    * Créer une commande
    */
-  async createOrder(order: any) {
+  async createOrder(order: any, token: string) {
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(order),
     });
     if (!response.ok) {
       throw new Error("Erreur lors de la création de la commande");
+    }
+    return response.json();
+  },
+
+  /**
+   * Récupérer les commandes d'un utilisateur
+   */
+  async getUserOrders(token: string) {
+    const response = await fetch(`${API_URL}/orders/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération des commandes");
+    }
+    return response.json();
+  },
+
+  /**
+   * Récupérer les informations utilisateur
+   */
+  async getUserProfile(token: string) {
+    const response = await fetch(`${API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération du profil");
+    }
+    return response.json();
+  },
+
+  /**
+   * Mettre à jour les informations utilisateur
+   */
+  async updateUserProfile(userData: any, token: string) {
+    const response = await fetch(`${API_URL}/auth/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error("Erreur lors de la mise à jour du profil");
     }
     return response.json();
   },
