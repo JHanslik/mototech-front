@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import {
   ShoppingCart,
   User,
@@ -17,6 +18,7 @@ import {
 export default function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -68,12 +70,17 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <Link
               href="/cart"
-              className={`hover:text-blue-300 transition flex items-center ${
+              className={`hover:text-blue-300 transition flex items-center relative ${
                 pathname === "/cart" ? "text-blue-400" : ""
               }`}
             >
               <ShoppingCart className="mr-1" size={20} />
-              Panier
+              <span>Panier</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             {isAuthenticated ? (
@@ -143,13 +150,18 @@ export default function Navbar() {
             </Link>
             <Link
               href="/cart"
-              className={`block py-2 hover:text-blue-300 transition flex items-center ${
+              className={`block py-2 hover:text-blue-300 transition flex items-center relative ${
                 pathname === "/cart" ? "text-blue-400" : ""
               }`}
               onClick={toggleMenu}
             >
               <ShoppingCart className="mr-1" size={20} />
-              Panier
+              <span>Panier</span>
+              {totalItems > 0 && (
+                <span className="ml-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             {isAuthenticated ? (
