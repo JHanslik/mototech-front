@@ -3,6 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
+import { useCallback, useRef } from "react";
 
 interface ProductCardProps {
   product: {
@@ -32,6 +35,62 @@ const getProductImage = (category?: string): string => {
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
+  // Utiliser une référence pour suivre l'état de clic (verrouillé ou non)
+  const isClickingRef = useRef(false);
+  // ID unique pour cette instance du composant - aide à identifier les doubles rendus
+  const instanceIdRef = useRef(
+    `productcard-${Math.random().toString(36).substring(2, 9)}`
+  );
+
+  const handleAddToCart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault(); // Empêcher la navigation
+      e.stopPropagation(); // Empêcher la propagation de l'événement
+
+      // Si déjà en train de cliquer, ignorer ce clic
+      if (isClickingRef.current) {
+        console.log(
+          `🔒 Clic ignoré [${instanceIdRef.current}] - Action déjà en cours`
+        );
+        return;
+      }
+
+      // Verrouiller pour éviter les clics multiples
+      isClickingRef.current = true;
+
+      try {
+        console.log(
+          `--- Ajout au panier depuis ProductCard [${instanceIdRef.current}] ---`
+        );
+        console.log("Produit:", product.name);
+        console.log("Quantité fixe: 1");
+
+        addToCart({
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          quantity: 1, // Ajouter une quantité fixe de 1 depuis la carte produit
+          category: product.category,
+        });
+
+        // Afficher un message après l'ajout
+        console.log("Produit ajouté au panier");
+
+        toast.success(`${product.name} ajouté au panier`, {
+          icon: "🛒",
+          duration: 3000,
+        });
+      } finally {
+        // Déverrouiller après un court délai (pour éviter les clics multiples accidentels)
+        setTimeout(() => {
+          isClickingRef.current = false;
+        }, 800); // 800ms de délai avant de pouvoir cliquer à nouveau
+      }
+    },
+    [product, addToCart]
+  );
+
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-blue-500/20 hover:shadow-xl border border-gray-700 hover:border-blue-500/30">
       <div className="relative h-48 bg-black">
@@ -64,10 +123,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             </Link>
             <button
               className="p-1 bg-gray-700 text-white rounded hover:bg-blue-600 transition-colors shadow-md"
-              onClick={() => {
-                // Ajouter au panier (à implémenter)
-                console.log("Ajouter au panier:", product);
-              }}
+              onClick={handleAddToCart}
+              aria-label="Ajouter au panier"
             >
               <ShoppingCart className="h-5 w-5" />
             </button>

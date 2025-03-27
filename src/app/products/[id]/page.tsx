@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import api from "@/services/api";
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
 
 interface Product {
   _id: string;
@@ -35,6 +37,13 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
+  const { addToCart } = useCart();
+  // Référence pour suivre l'état de clic
+  const isAddingRef = useRef(false);
+  // ID unique pour cette instance du composant
+  const instanceIdRef = useRef(
+    `detail-${Math.random().toString(36).substring(2, 9)}`
+  );
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,10 +77,53 @@ export default function ProductDetailPage() {
     }
   };
 
-  const handleAddToCart = () => {
-    // Ajouter au panier (à implémenter)
-    console.log("Ajouter au panier:", product, "quantité:", quantity);
-  };
+  const handleAddToCart = useCallback(() => {
+    // Si déjà en train d'ajouter, ignorer ce clic
+    if (isAddingRef.current) {
+      console.log(
+        `🔒 Action ignorée [${instanceIdRef.current}] - Ajout déjà en cours`
+      );
+      return;
+    }
+
+    // Verrouiller pour éviter les clics multiples
+    isAddingRef.current = true;
+
+    try {
+      if (product) {
+        console.log(
+          `--- Ajout au panier depuis la page détail [${instanceIdRef.current}] ---`
+        );
+        console.log("Quantité sélectionnée:", quantity);
+        console.log("Produit:", product.name);
+
+        addToCart({
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          quantity: quantity,
+          category: product.category,
+        });
+
+        // Afficher un message après l'ajout
+        console.log("Produit ajouté au panier");
+
+        // Notification avec toast
+        toast.success(`${product.name} ajouté au panier`, {
+          icon: "🛒",
+          duration: 3000,
+        });
+
+        // Réinitialiser la quantité à 1 après l'ajout
+        setQuantity(1);
+      }
+    } finally {
+      // Déverrouiller après un court délai
+      setTimeout(() => {
+        isAddingRef.current = false;
+      }, 800); // 800ms de délai pour éviter les clics multiples
+    }
+  }, [product, quantity, addToCart]);
 
   if (loading) {
     return (

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingCart, User, Menu, X } from "lucide-react";
+import { User, Menu, X } from "lucide-react";
+import CartIcon from "./CartIcon";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,12 +50,7 @@ export default function Navbar() {
           </div>
           <div className="hidden md:block">
             <div className="flex items-center ml-4 md:ml-6">
-              <Link
-                href="/cart"
-                className="p-2 rounded-full hover:bg-gray-800 text-white hover:text-blue-400 transition-colors"
-              >
-                <ShoppingCart className="h-6 w-6" />
-              </Link>
+              <CartIcon />
               <Link
                 href="/profile"
                 className="p-2 ml-2 rounded-full hover:bg-gray-800 text-white hover:text-blue-400 transition-colors"
@@ -109,12 +105,7 @@ export default function Navbar() {
           </div>
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-5">
-              <Link
-                href="/cart"
-                className="p-2 rounded-full hover:bg-gray-800 hover:text-blue-400 transition-colors"
-              >
-                <ShoppingCart className="h-6 w-6" />
-              </Link>
+              <CartIcon />
               <Link
                 href="/profile"
                 className="p-2 ml-2 rounded-full hover:bg-gray-800 hover:text-blue-400 transition-colors"

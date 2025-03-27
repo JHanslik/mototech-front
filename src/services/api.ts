@@ -44,6 +44,47 @@ export const api = {
   },
 
   /**
+   * Récupérer le panier d'un utilisateur
+   */
+  async getCart(userId: string) {
+    const response = await fetch(`${API_URL}/cart/${userId}`);
+    if (!response.ok) {
+      throw new Error("Erreur lors de la récupération du panier");
+    }
+    return response.json();
+  },
+
+  /**
+   * Sauvegarder le panier d'un utilisateur
+   */
+  async saveCart(userId: string, items: any[]) {
+    const response = await fetch(`${API_URL}/cart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, items }),
+    });
+    if (!response.ok) {
+      throw new Error("Erreur lors de la sauvegarde du panier");
+    }
+    return response.json();
+  },
+
+  /**
+   * Vider le panier d'un utilisateur
+   */
+  async clearCart(userId: string) {
+    const response = await fetch(`${API_URL}/cart/${userId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error("Erreur lors de la suppression du panier");
+    }
+    return response.json();
+  },
+
+  /**
    * Créer un utilisateur
    */
   async createUser(user: any) {
